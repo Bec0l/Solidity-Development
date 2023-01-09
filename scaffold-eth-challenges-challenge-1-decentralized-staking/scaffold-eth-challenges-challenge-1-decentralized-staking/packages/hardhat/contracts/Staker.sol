@@ -30,6 +30,8 @@ contract Staker {
   mapping (address => uint256) public balances;
 
   function stake () public payable{
+    require(block.timestamp < deadline, "deadline reached");
+    require(msg.value > 0, "Insufficient value");
     balances[msg.sender] += msg.value;
     emit Stake(msg.sender, msg.value);
   }
@@ -39,29 +41,38 @@ contract Staker {
   // After some `deadline` allow anyone to call an `execute()` function
   // If the deadline has passed and the threshold is met, it should call `exampleExternalContract.complete{value: address(this).balance}()`
   function execute() public {
-    require(isExecuted = false, "Already executed");
+    require(isExecuted = true, "Already executed");
     require(block.timestamp > deadline, "deadline not reached");
-    if (address(this).balance >= threshold) {
+    if (balances[msg.sender] >= threshold) {
       exampleExternalContract.complete{value: address(this).balance}();
     } else {
       openForWithdraw = true;
     }
     isExecuted = true;
+    
   }
 
 
   // If the `threshold` was not met, allow everyone to call a `withdraw()` function to withdraw their balance
-  function withdraw(uint256 amount) public {
+  function withdraw() external {
+   uint256 amount = balances[msg.sender];
     require(openForWithdraw = true, "Contract not executed");
-    require(address(this).balance > 0, "Insuficient funds");
-     uint256 amount = address(this).balance; 
+    require(balances[msg.sender] > 0, "Insuficient funds");
+    (bool success, ) = payable(msg.sender).call{value: amount}("");
+        require(success, "Withdraw failed."); 
   }
 
   // Add a `timeLeft()` view function that returns the time left before the deadline for the frontend
-  function timeLeft() public view returns (uint256) {
-    
+  function timeLeft() public view returns(uint _timeLeft) {
+    if(block.timestamp >= deadline) {
+      _timeLeft = 0;
+    } else {
+      _timeLeft = deadline - block.timestamp;
+    }
   }
 
   // Add the `receive()` special function that receives eth and calls stake()
-
+  receive() external payable {
+    stake();
+  }
 }
