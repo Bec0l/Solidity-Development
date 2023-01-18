@@ -2,26 +2,35 @@ pragma solidity ^0.8.0;
 
 contract Voting {
     address public owner;
-    mapping (address => bool) public voters;
+    mapping (address => bool) public members;
     mapping (bytes32 => uint8) public votesReceived;
-    bytes32[] public candidates;
+    bytes32[] public proposals;
 
     constructor() public {
         owner = msg.sender;
-        candidates.push("Candidate 1");
-        candidates.push("Candidate 2");
     }
 
-    function vote(bytes32 candidate) public {
-        require(!voters[msg.sender], "You have already voted.");
-        require(candidate == candidates[0] || candidate == candidates[1], "Invalid candidate.");
-        votesReceived[candidate]++;
-        voters[msg.sender] = true;
+    function addMember(address member) public {
+        require(msg.sender == owner, "You are not the owner.");
+        members[member] = true;
     }
 
-    function totalVotesFor(bytes32 candidate) public view returns (uint8) {
-        require(candidate == candidates[0] || candidate == candidates[1], "Invalid candidate.");
-        return votesReceived[candidate];
+    function addProposal(bytes32 proposal) public {
+        require(msg.sender == owner, "You are not the owner.");
+        proposals.push(proposal);
+    }
+
+    function vote(bytes32 proposal) public {
+        require(members[msg.sender], "You are not a member.");
+        require(proposals.length > 0, "No proposals available to vote for.");
+        require(proposals[proposal] !== undefined, "Invalid proposal.");
+        votesReceived[proposal]++;
+    }
+
+    function totalVotesFor(bytes32 proposal) public view returns (uint8) {
+        require(proposals.length > 0, "No proposals available to vote for.");
+        require(proposals[proposal] !== undefined, "Invalid proposal.");
+        return votesReceived[proposal];
     }
 
     function changeOwner(address newOwner) public {
