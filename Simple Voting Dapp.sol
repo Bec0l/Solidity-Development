@@ -1,29 +1,25 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract Voting {
-    address public owner;
+import "@openzeppelin/contracts/ownership/Ownable.sol";
+
+contract Voting is Ownable {
     mapping (address => bool) public members;
     mapping (uint256 => uint8) public votesReceived;
-    mapping (address => bool) public voted;
     string[] public proposals;
     bool public resultsShown;
+
+    struct Voted {
+        bool voted;
+    }
     
     event Results(uint8[] votes);
     
-
-
-    constructor() public {
-        owner = msg.sender;
-    }
-
-    function addMember(address member) public {
-        require(msg.sender == owner, "You are not the owner.");
+    function addMember(address member) public onlyOwner {
         members[member] = true;
     }
 
-    function addProposal(string memory proposal) public {
-        require(msg.sender == owner, "You are not the owner.");
+    function addProposal(string memory proposal) public onlyOwner {
         proposals.push(proposal);
     }
 
@@ -35,13 +31,9 @@ contract Voting {
         require(!voted[msg.sender], "You have already voted.");
         votesReceived[proposal]++;
         voted[msg.sender] = true;
+        voters.push(msg.sender);
     }
 
-    function changeOwner(address newOwner) public {
-        require(msg.sender == owner, "You are not the owner.");
-        owner = newOwner;
-    }
-    
     function showResults() public returns (uint8[] memory) {
         require(!resultsShown, "Results already shown.");
         
@@ -54,8 +46,14 @@ contract Voting {
         emit Results(result);
     }
 
-    // to support receiving ETH by default
-  receive() external payable {}
-  fallback() external payable {}
+    function reset() public onlyOwner {
+        require(!voters[msg.sender].voted, "You have already voted.");
+        resultsShown = false;
+        voted = false;
+        while(proposals.length>0){
+            proposals.pop();
+        }
+        
 
+    } 
 }
