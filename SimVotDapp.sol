@@ -39,24 +39,25 @@ contract Voting is Ownable {
     } 
 
 // function to add votes to the variable votesPerProposal. _porposalID is the position in the array
-    function vote(uint256 _proposalId) public returns (string memory) {
-        //require (!member(voted), "You have voted already.");
+    function vote(uint256 _proposalId) public {
+       
         require(proposalForVoting.length > 0, "No proposals available to vote for.");
         require(_proposalId < proposalForVoting.length, "Invalid proposal.");
         
-        proposalForVoting[_proposalId].votesPerProposal++;
-        
+        uint id;
+
         for (uint i=0; i<member.length; i++){
             if (member[i].addr == msg.sender){
-                member[i].voted = true;
-            } else {
-                return "You are not a member.";
-            }
+                id = i;
+            } 
         }  
-    } 
-            
-            
-         
+
+        require(member[id].isMember, "You are not a member.");
+        require(!member[id].voted, "You have already voted.");
+       
+        proposalForVoting[_proposalId].votesPerProposal++;
+      
+    }         
   
     function showResults() public  {
         for (uint i = 0; i < proposalForVoting.length; i++) {
