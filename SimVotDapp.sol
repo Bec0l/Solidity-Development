@@ -24,11 +24,7 @@ contract Voting is Ownable {
 
     event Results (string, uint256 );
 
-    // modifier memberOnly() {
-    //     require(member[i].isMember = true, "You are not a member");
-    //     _;
-    // }
-
+    
     function addMember(address _address) public onlyOwner {
         member.push(Member(_address, false, true));
         
