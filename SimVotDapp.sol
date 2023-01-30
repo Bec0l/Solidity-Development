@@ -56,6 +56,7 @@ contract Voting is Ownable {
         require(!member[id].voted, "You have already voted.");
        
         proposalForVoting[_proposalId].votesPerProposal++;
+        member[id].voted = true;
       
     }         
   
